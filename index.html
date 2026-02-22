@@ -456,7 +456,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 <div id="app">
   <header class="topbar">
     <div class="tb-ava" id="tbAva" onclick="showScreen('profile')">🐾</div>
-    <div class="tb-name" id="tbUserName">わんちゃん日記</div>
+    <div class="tb-name" id="tbUserName">わんちゃんの成長日記</div>
     <button class="tb-btn" onclick="showScreen('settings')">⚙️</button>
   </header>
 
@@ -609,7 +609,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
       <div class="s-wrap">
         <div class="s-block"><div class="s-block-t">👤 アカウント</div>
           <div class="info-card">
-            <div class="irow" onclick="doLogout()"><div class="irow-ico">🚪</div><div><div class="irow-lbl">ログアウト</div><div class="irow-val">Googleアカウントからサインアウト</div></div><span class="irow-arr">›</span></div>
+            <div class="irow" onclick="doLogout()"><div class="irow-ico">🚪</div><div><div class="irow-lbl">ログアウト</div><div class="irow-val">サインアウト</div></div><span class="irow-arr">›</span></div>
           </div>
         </div>
         <div class="s-block"><div class="s-block-t">🎨 テーマカラー</div>
@@ -801,7 +801,6 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 <input type="file" id="hlMediaInput"  accept="image/*,video/*" multiple onchange="handleHlMedia(event)">
 <input type="file" id="photoLibInput" accept="image/*,video/*" multiple onchange="handlePhotoLib(event)">
 
-<!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
@@ -820,70 +819,55 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db  = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// ════ AUTH STATE ════
-let currentUser = null;
-onAuthStateChanged(auth, user => {
-  currentUser = user;
+window.doGoogleLogin = async () => {
+  try { await signInWithPopup(auth, provider); }
+  catch(e) { console.error('Login error:', e); }
+};
+
+window.doLogout = async () => {
+  try { await signOut(auth); } catch(e) { console.error(e); }
+};
+
+window.saveDiaryToFirestore = async (entry) => {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    const data = { uid: user.uid, createdAt: serverTimestamp() };
+    ['date','title','emoji','mood','txt','wanko','bg'].forEach(k => { if(entry[k]) data[k] = entry[k]; });
+    await addDoc(collection(db, 'users', user.uid, 'diaries'), data);
+  } catch(e) { console.error('Save error:', e); }
+};
+
+onAuthStateChanged(auth, async (user) => {
+  window._fbLoggedIn = !!user;
   document.getElementById('splash').classList.add('out');
   if (user) {
     document.getElementById('loginOverlay').style.display = 'none';
-    const appEl = document.getElementById('app');
-    appEl.style.display = 'flex';
-    const nameEl = document.getElementById('tbUserName');
-    if(nameEl) nameEl.textContent = user.displayName ? user.displayName.split(' ')[0] + 'さん' : 'わんちゃん';
-    if(window.initDates) window.initDates();
-    if(window.renderDiaryList) window.renderDiaryList();
-    loadDiaries();
+    document.getElementById('app').style.display = 'flex';
+    const el = document.getElementById('tbUserName');
+    if (el) el.textContent = (user.displayName || 'ゲスト').split(' ')[0] + 'さん';
+    await new Promise(r => setTimeout(r, 150));
+    if (window.initDates) window.initDates();
+    if (window.renderDiaryList) window.renderDiaryList();
+    // Load from Firestore
+    try {
+      const snap = await getDocs(collection(db, 'users', user.uid, 'diaries'));
+      if (!snap.empty) {
+        const remote = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        remote.sort((a,b) => (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+        if (window._setDiaries) window._setDiaries(remote);
+      }
+    } catch(e) { console.error('Load error:', e); }
   } else {
     document.getElementById('loginOverlay').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
   }
 });
-
-// ════ LOGIN / LOGOUT ════
-window.doGoogleLogin = async function() {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch(e) {
-    console.error('Login error:', e);
-  }
-};
-window.doLogout = async function() {
-  await signOut(auth);
-};
-
-// ════ SAVE DIARY TO FIRESTORE ════
-window.saveDiaryToFirestore = async function(entry) {
-  if (!currentUser) return;
-  try {
-    await addDoc(collection(db, 'users', currentUser.uid, 'diaries'), {
-      ...entry,
-      createdAt: serverTimestamp(),
-      uid: currentUser.uid
-    });
-  } catch(e) {
-    console.error('Save error:', e);
-  }
-};
-
-// ════ LOAD DIARIES FROM FIRESTORE ════
-window.loadDiaries = async function() {
-  if (!currentUser) return;
-  try {
-    const snap = await getDocs(collection(db, 'users', currentUser.uid, 'diaries'));
-    const remote = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (remote.length > 0) {
-      diaries = remote.sort((a,b) => (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-      renderDiaryList();
-    }
-  } catch(e) {
-    console.error('Load error:', e);
-  }
-};
-
+</script>
+<script>
 const AVATARS = [
   {id:'toypoodle', label:'トイプードル', from:'#fef3e2', to:'#f5d5a0', svg:`<svg version="1.1" id="Layer_2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 128 128" style="enable-background:new 0 0 128 128;" xml:space="preserve">
@@ -1465,7 +1449,7 @@ const BDAY=new Date('2022-03-12');
 let WELCOME=new Date('2022-04-20');
 function getAge(d){const n=new Date();let y=n.getFullYear()-d.getFullYear(),m=n.getMonth()-d.getMonth();if(m<0){y--;m+=12;}return `${y}歳${m}ヶ月`;}
 function getDays(d){return Math.floor((new Date()-d)/86400000);}
-window.initDates = function initDates(){
+function initDates(){
   const age=getAge(BDAY),days=getDays(WELCOME);
   const bd=`${BDAY.getFullYear()}.${String(BDAY.getMonth()+1).padStart(2,'0')}.${String(BDAY.getDate()).padStart(2,'0')}`;
   document.getElementById('hAge').textContent=`${age}（${bd}）`;
@@ -1502,7 +1486,7 @@ let diaries=[
   {id:'d2',date:'2025.02.13',title:'雨の日',emoji:'☁️',bg:'linear-gradient(135deg,#DCE8EC,#B0C8D4)',mood:'☁️ のんびり',txt:'雨の日。一日中ゴロゴロしてた。おすしもわたしのそばで丸まってた。',wanko:AI_MSGS['default'][3]},
 ];
 let mediaFiles=[];
-window.renderDiaryList = function renderDiaryList(){
+function renderDiaryList(){
   const list=document.getElementById('diaryList');list.innerHTML='';
   diaries.slice(0,2).forEach(e=>{
     const div=document.createElement('div');div.className='dc';div.onclick=()=>openDiary(e.id);
@@ -1533,7 +1517,7 @@ function pickMood(el){document.querySelectorAll('.mc').forEach(c=>c.classList.re
 function tryAI(){const el=document.getElementById('dta'),txt=el?el.textContent:'';if((txt.length>4||mediaFiles.length>0)&&!aiOn){aiOn=true;document.getElementById('aiBub').classList.add('on');}if(aiOn)document.getElementById('aiMsg').textContent=getAIMsg(selMood);}
 function doSubmit(){const el=document.getElementById('dta'),txt=el?el.textContent.trim():'';if(!txt&&!mediaFiles.length){if(el)el.focus();return;}const title=document.getElementById('diaryTitle').value.trim();const now=new Date();const ds=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;const w=getAIMsg(selMood);const newEntry={id:'d'+Date.now(),date:ds,title,emoji:'✏️',bg:'linear-gradient(135deg,#EDE7FF,#D1C4E9)',mood:selMood,txt,wanko:w,mediaSrc:mediaFiles.length?mediaFiles[0].src:null,mediaType:mediaFiles.length?mediaFiles[0].type:null};
 diaries.unshift(newEntry);
-if(window.saveDiaryToFirestore)saveDiaryToFirestore(newEntry);document.getElementById('mMsg').textContent=w;document.getElementById('ovSuccess').classList.add('on');}
+if(window.saveDiaryToFirestore)window.saveDiaryToFirestore(newEntry);document.getElementById('mMsg').textContent=w;document.getElementById('ovSuccess').classList.add('on');}
 function closeSuccess(){document.getElementById('ovSuccess').classList.remove('on');const d=document.getElementById('dta');if(d)d.innerHTML='';const t=document.getElementById('diaryTitle');if(t)t.value='';mediaFiles=[];refreshMediaStrip();document.getElementById('aiBub').classList.remove('on');document.querySelectorAll('.mc').forEach(c=>c.classList.remove('on'));aiOn=false;selMood='';renderDiaryList();showScreen('home');}
 
 // DIARY DETAIL
@@ -1606,19 +1590,17 @@ function showScreen(name){SCREENS.forEach(s=>{const e=document.getElementById(s+
 // INIT
 initDates();
 renderDiaryList();
-window.addEventListener('load',()=>{setTimeout(()=>{if(!currentUser){document.getElementById('splash').classList.add('out');}},2000);});
+window.addEventListener('load',()=>{setTimeout(()=>{if(!window._fbLoggedIn)document.getElementById('splash').classList.add('out');},2200);});
 window.addEventListener('resize',drawChart);
 </script>
 
-<!-- LOGIN OVERLAY -->
 <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:1000;background:linear-gradient(160deg,#4C1D95,#7C3AED,#DB2777);flex-direction:column;align-items:center;justify-content:center;gap:0;">
-  <div style="font-size:72px;line-height:1;display:flex;align-items:center;justify-content:center;animation:bob 2s ease-in-out infinite">🐾</div>
-  <div style="font-family:'Hachi Maru Pop',sans-serif;font-size:22px;color:#fff;margin-top:18px;letter-spacing:.05em;">わんちゃん成長日記</div>
+  <div style="font-size:72px;line-height:1;padding-bottom:4px;animation:bob 2s ease-in-out infinite">🐾</div>
+  <div style="font-family:'Hachi Maru Pop',sans-serif;font-size:22px;color:#fff;margin-top:18px;letter-spacing:.05em;">わんちゃんの成長日記</div>
   <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:8px;letter-spacing:.1em;">大切な毎日を、ずっとそばに。</div>
   <button onclick="doGoogleLogin()" style="margin-top:36px;display:flex;align-items:center;gap:10px;background:#fff;border:none;border-radius:28px;padding:14px 28px;font-size:15px;font-weight:700;color:#333;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.2);">
     <img src="https://www.google.com/favicon.ico" style="width:18px;height:18px"> Googleでログイン
   </button>
 </div>
-
 </body>
 </html>
