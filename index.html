@@ -810,7 +810,7 @@ html,body{touch-action:manipulation;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
@@ -831,7 +831,12 @@ const provider = new GoogleAuthProvider();
 window._fbAuth = auth;
 
 window.doGoogleLogin = async () => {
-  try { await signInWithPopup(auth, provider); } catch(e) { console.error(e); }
+  try { 
+    await signInWithPopup(auth, provider); 
+  } catch(e) { 
+    console.error('Popup failed, trying redirect:', e);
+    try { await signInWithRedirect(auth, provider); } catch(e2) { console.error(e2); }
+  }
 };
 window.doLogout = async () => {
   try { await signOut(auth); } catch(e) { console.error(e); }
@@ -845,6 +850,12 @@ window.saveDiaryToFirestore = async (entry) => {
     await addDoc(collection(db,'users',user.uid,'diaries'), data);
   } catch(e) { console.error('Save:',e); }
 };
+
+// Check redirect result first
+try {
+  const result = await getRedirectResult(auth);
+  if (result) console.log('Redirect login success:', result.user.displayName);
+} catch(e) { console.error('Redirect result error:', e); }
 
 onAuthStateChanged(auth, async (user) => {
   window._fbLoggedIn = !!user;
@@ -1596,7 +1607,19 @@ function showScreen(name){SCREENS.forEach(s=>{const e=document.getElementById(s+
 // INIT
 initDates();
 renderDiaryList();
-window.addEventListener('load',()=>{setTimeout(()=>{document.getElementById('splash').classList.add('out');},1800);});
+window.addEventListener('load',()=>{
+  setTimeout(()=>{document.getElementById('splash').classList.add('out');},1800);
+  // Fallback: if Firebase doesn't respond, show login after 3s
+  setTimeout(()=>{
+    if(!window._fbLoggedIn){
+      const lo=document.getElementById('loginOverlay');
+      const app=document.getElementById('app');
+      if(app.style.display==='none'){
+        lo.style.display='flex';
+      }
+    }
+  },3000);
+});
 
 function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 window.syncDogName=function(name){const n=name.trim()||'わんちゃん';['hName','pName'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});const tb=document.getElementById('tbUserName');if(tb)tb.textContent=n+'の成長日記';};
