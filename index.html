@@ -446,11 +446,12 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 /* ── iOS TOUCH FIXES ── */
 *{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
 input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text;}
-button,.ntab,.dc,.hl-circle-item,.post-row,.irow,.mc,.tc,.av-card,.font-opt,.mp,.gcell,.hl-photo-cell,.hl-photo-add{
+button,.ntab,.dc,.hl-circle-item,.post-row,.irow,.mc,.tc,.av-card,.font-opt,.mp,.gcell,.hl-photo-cell,.hl-photo-add,[onclick]{
   touch-action:manipulation;
   cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
 }
-html{touch-action:manipulation;}
+html,body{touch-action:manipulation;}
 
 </style>
 </head>
@@ -1651,7 +1652,26 @@ window.syncDogName = function(name) {
   if (tb) tb.textContent = n + 'の成長日記';
 };
 window.addEventListener('resize',drawChart);
-document.addEventListener('touchstart',function(){},{passive:true});
+// ── iOS INSTANT TAP BRIDGE ──
+(function(){
+  var el = document.documentElement;
+  el.addEventListener('touchend', function(e){
+    var t = e.target;
+    // Walk up to find clickable element
+    for(var i=0; i<5; i++){
+      if(!t || t === document.body) break;
+      var onclick = t.getAttribute('onclick');
+      var tag = t.tagName;
+      if(onclick || tag==='BUTTON' || tag==='A' || tag==='INPUT'){
+        e.preventDefault();
+        if(onclick) { try{ eval(onclick); }catch(x){} }
+        else { t.click(); }
+        return;
+      }
+      t = t.parentElement;
+    }
+  }, {passive:false});
+})();
 function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 </script>
