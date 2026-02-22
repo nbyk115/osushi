@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>わんちゃんの成長日記</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Zen+Maru+Gothic:wght@400;500;700&family=Nunito:wght@700;800;900&family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&family=Hachi+Maru+Pop&display=swap" rel="stylesheet">
@@ -441,6 +442,16 @@ input[type=color]::-webkit-color-swatch{border-radius:50%;border:none;}
 input[type=file]{display:none;}
 input[type=number]{-moz-appearance:textfield;}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+
+/* ── iOS TOUCH FIXES ── */
+*{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
+input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text;}
+button,.ntab,.dc,.hl-circle-item,.post-row,.irow,.mc,.tc,.av-card,.font-opt,.mp,.gcell,.hl-photo-cell,.hl-photo-add{
+  touch-action:manipulation;
+  cursor:pointer;
+}
+html{touch-action:manipulation;}
+
 </style>
 </head>
 <body>
@@ -448,7 +459,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 <!-- SPLASH -->
 <div id="splash">
   <div class="sp-ava" id="spAva">🐾</div>
-  <div class="sp-title">わんちゃんの成長日記</div>
+  <div class="sp-title" id="spTitle">わんちゃんの成長日記</div>
   <div class="sp-sub">大切な毎日を、ずっとそばに。</div>
   <div class="sp-dots"><div class="sp-dot"></div><div class="sp-dot"></div><div class="sp-dot"></div></div>
 </div>
@@ -474,7 +485,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             <div class="hero-ava" id="heroAva" onclick="document.getElementById('avatarUpload').click()">🐩</div>
             <button class="hero-ava-edit" onclick="document.getElementById('avatarUpload').click()">📷</button>
           </div>
-          <div class="h-name">わんちゃん</div>
+          <div class="h-name" id="hName">わんちゃん</div>
           <div class="h-breed" id="hBreed">マルチーズ</div>
           <div class="h-meta">
             <div class="h-pill"><span class="h-pill-icon">🎂</span><span id="hAge">…</span></div>
@@ -506,11 +517,8 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 
       <div class="sec-card">
         <div class="sec-hd"><div class="sec-t">ハイライト</div><div class="sec-more" onclick="showScreen('highlights')">全部みる ›</div></div>
-        <div class="hl-row">
-          <div class="hl-circle-item" onclick="showScreen('highlights')"><div class="hl-ring"><div class="hl-inner">🌸</div></div><div class="hl-lbl">はじめての〇〇</div></div>
-          <div class="hl-circle-item" onclick="showScreen('highlights')"><div class="hl-ring"><div class="hl-inner">🎂</div></div><div class="hl-lbl">誕生日</div></div>
-          <div class="hl-circle-item" onclick="showScreen('highlights')"><div class="hl-ring"><div class="hl-inner">❄️</div></div><div class="hl-lbl">冬のおもいで</div></div>
-          <div class="hl-circle-item" onclick="showScreen('highlights')"><div class="hl-ring"><div class="hl-inner">🏖️</div></div><div class="hl-lbl">おでかけ</div></div>
+        <div class="hl-row" id="hlRow">
+          <div style="font-size:11px;color:var(--soft);align-self:center;white-space:nowrap;">思い出を追加しよう</div>
           <div class="hl-circle-item" onclick="openMemorySheet()"><div class="hl-ring add-ring"><div class="add-ring-ico">＋</div></div><div class="hl-lbl">追加</div></div>
         </div>
       </div>
@@ -547,7 +555,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           </div>
         </div>
       </div>
-      <div class="ai-bub" id="aiBub"><div class="ai-lbl">🐾 おすしからのひとこと</div><div class="ai-msg" id="aiMsg"></div></div>
+      <div class="ai-bub" id="aiBub"><div class="ai-lbl">🐾 わんちゃんからのひとこと</div><div class="ai-msg" id="aiMsg"></div></div>
       <button class="sub-btn" onclick="doSubmit()">✨ 記録する</button>
     </div>
 
@@ -555,14 +563,8 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
     <div class="screen" id="highlightsScreen">
       <div class="hl-topbar"><div class="hl-title">ハイライト</div><button class="hl-add-btn" onclick="openMemorySheet()">＋ 新しいグループ</button></div>
       <div class="hl-list">
-        <div class="hl-group"><div class="hl-group-head"><div class="hl-group-emoji">🌸</div><div class="hl-group-info"><div class="hl-group-name">はじめての〇〇</div><div class="hl-group-count">3枚</div></div></div>
-          <div class="hl-photos"><div class="hl-photo-cell" style="background:linear-gradient(135deg,#EDE0F0,#D4B8E0)" onclick="openPhoto('🌸','linear-gradient(135deg,#EDE0F0,#D4B8E0)','初めてのドッグラン')">🌸</div><div class="hl-photo-cell" style="background:linear-gradient(135deg,#D8E4F0,#A8C0D8)" onclick="openPhoto('🏔️','linear-gradient(135deg,#D8E4F0,#A8C0D8)','初めての雪')">🏔️</div><div class="hl-photo-add" onclick="document.getElementById('hlMediaInput').click()"><div class="hl-photo-add-ico">＋</div><div class="hl-photo-add-txt">追加</div></div></div>
-        </div>
-        <div class="hl-group"><div class="hl-group-head"><div class="hl-group-emoji">🎂</div><div class="hl-group-info"><div class="hl-group-name">誕生日</div><div class="hl-group-count">2枚</div></div></div>
-          <div class="hl-photos"><div class="hl-photo-cell" style="background:linear-gradient(135deg,#ECE8D8,#D0C090)" onclick="openPhoto('🎂','linear-gradient(135deg,#ECE8D8,#D0C090)','3歳のお誕生日')">🎂</div><div class="hl-photo-add" onclick="document.getElementById('hlMediaInput').click()"><div class="hl-photo-add-ico">＋</div><div class="hl-photo-add-txt">追加</div></div></div>
-        </div>
-        <div class="hl-group" style="cursor:pointer;border:2px dashed var(--bd);background:transparent;box-shadow:none;display:flex;align-items:center;justify-content:center;min-height:64px;" onclick="openMemorySheet()"><span style="font-size:13px;color:var(--soft);font-weight:600">＋ 新しいグループを作る</span></div>
-      </div>
+        <div id="hlGroupList"></div>
+        <div class="hl-group" style="cursor:pointer;border:2px dashed var(--bd);background:transparent;box-shadow:none;display:flex;align-items:center;justify-content:center;min-height:64px;" onclick="openMemorySheet()"><span style="font-size:13px;color:var(--soft);font-weight:600">＋ 新しいグループを作る</span></div></div>
     </div>
 
     <!-- PHOTOS -->
@@ -607,6 +609,19 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
     <div class="screen" id="settingsScreen">
       <div class="scr-topbar"><button class="back-btn" onclick="showScreen('home')">‹</button><div class="scr-title">設定</div></div>
       <div class="s-wrap">
+        <div class="s-block" style="background:linear-gradient(135deg,#4C1D95,#7C3AED);border-radius:var(--r-lg);padding:20px;box-shadow:0 4px 20px rgba(124,58,237,.3);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <div style="font-size:24px">👑</div>
+            <div><div style="font-family:var(--fh);font-size:16px;font-weight:800;color:#fff;">プレミアムプラン</div><div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;">健康管理・無制限保存・AIコメント強化</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+            <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:10px;"><div style="font-size:16px;margin-bottom:3px">⚖️</div><div style="font-size:11px;color:#fff;font-weight:600">体重・健康管理</div></div>
+            <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:10px;"><div style="font-size:16px;margin-bottom:3px">💉</div><div style="font-size:11px;color:#fff;font-weight:600">ワクチン記録</div></div>
+            <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:10px;"><div style="font-size:16px;margin-bottom:3px">🖼️</div><div style="font-size:11px;color:#fff;font-weight:600">無制限写真保存</div></div>
+            <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:10px;"><div style="font-size:16px;margin-bottom:3px">🐾</div><div style="font-size:11px;color:#fff;font-weight:600">AIコメント強化版</div></div>
+          </div>
+          <button onclick="openPremiumSheet()" style="width:100%;padding:13px;border:none;border-radius:12px;background:#fff;font-family:var(--ff);font-size:14px;font-weight:800;color:#7C3AED;cursor:pointer;touch-action:manipulation;">✨ 月額480円で始める</button>
+        </div>
         <div class="s-block"><div class="s-block-t">👤 アカウント</div>
           <div class="info-card">
             <div class="irow" onclick="doLogout()"><div class="irow-ico">🚪</div><div><div class="irow-lbl">ログアウト</div><div class="irow-val">サインアウト</div></div><span class="irow-arr">›</span></div>
@@ -633,6 +648,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <div class="s-block"><div class="s-block-t">🐾 アバター</div><div class="ava-grid" id="avaGrid"></div></div>
         <div class="s-block"><div class="s-block-t">📋 プロフィール</div>
           <div class="info-card">
+            <div class="irow"><div class="irow-ico">🐾</div><div style="flex:1"><div class="irow-lbl">わんちゃんの名前</div><div class="irow-val"><input class="irow-input" id="dogNameInput" type="text" placeholder="わんちゃん" value="わんちゃん" oninput="syncDogName(this.value)" style="width:120px"></div></div></div>
             <div class="irow" onclick="openBreedPicker()"><div class="irow-ico">🐕</div><div><div class="irow-lbl">犬種</div><div class="irow-val" id="breedVal">マルチーズ</div></div><span class="irow-arr">›</span></div>
             <div class="irow" onclick="openBdayPicker()"><div class="irow-ico">🎂</div><div><div class="irow-lbl">誕生日</div><div class="irow-val" id="bdayVal">2022年3月12日</div></div><span class="irow-arr">›</span></div>
             <div class="irow" onclick="openFamilyDayInput()"><div class="irow-ico">🏠</div><div><div class="irow-lbl">家族になった日</div><div class="irow-val" id="familyVal">2022年4月20日</div></div><span class="irow-arr">›</span></div>
@@ -655,7 +671,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             <div class="p-ava" id="profAva" onclick="document.getElementById('avatarUpload').click()">🐩</div>
             <button class="p-ava-edit" onclick="document.getElementById('avatarUpload').click()">📷</button>
           </div>
-          <div class="p-name">わんちゃん</div>
+          <div class="p-name" id="pName">わんちゃん</div>
           <div class="p-breed" id="pBreed">マルチーズ</div>
           <div class="p-pills"><div class="pp" id="ppAge">…</div><div class="pp" id="ppDays">…</div></div>
         </div>
@@ -682,7 +698,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <div class="dd-mood" id="ddMood" style="display:none"></div>
         <div class="dd-title" id="ddTitle"></div>
         <div class="dd-full-txt" id="ddTxt"></div>
-        <div class="dd-wanko"><span class="dd-wk-lbl">🐾 おすしからのひとこと</span><span class="dd-wk-txt" id="ddWkTxt"></span></div>
+        <div class="dd-wanko"><span class="dd-wk-lbl">🐾 わんちゃんからのひとこと</span><span class="dd-wk-txt" id="ddWkTxt"></span></div>
       </div>
     </div>
 
@@ -702,7 +718,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   <div class="sheet"><div class="sheet-success">
     <div class="m-ava" id="mAva">🐾</div>
     <div class="m-title">記録できたよ ✨</div>
-    <div class="m-bub"><span class="m-lbl">🐾 おすしからのひとこと</span><span class="m-msg" id="mMsg"></span></div>
+    <div class="m-bub"><span class="m-lbl">🐾 わんちゃんからのひとこと</span><span class="m-msg" id="mMsg"></span></div>
     <button class="m-close" onclick="closeSuccess()">ホームに戻る</button>
   </div></div>
 </div>
@@ -1482,16 +1498,17 @@ function handleAvatarUpload(e){const f=e.target.files[0];if(!f)return;const r=ne
 
 // DIARY DATA
 let diaries=[
-  {id:'d1',date:'2025.02.15',title:'お散歩日和',emoji:'🌸',bg:'linear-gradient(135deg,#EDE0F0,#D4B8E0)',mood:'🌸 うれしい',txt:'今日はお散歩で桜の木の下を通った。おすしがくんくんして気持ちよさそうにしてた。こういう何気ない一日が好きだな。',wanko:AI_MSGS['のんびり'][0]},
-  {id:'d2',date:'2025.02.13',title:'雨の日',emoji:'☁️',bg:'linear-gradient(135deg,#DCE8EC,#B0C8D4)',mood:'☁️ のんびり',txt:'雨の日。一日中ゴロゴロしてた。おすしもわたしのそばで丸まってた。',wanko:AI_MSGS['default'][3]},
+  {id:'d1',date:'2025.02.15',title:'お散歩日和',emoji:'🌸',bg:'linear-gradient(135deg,#EDE0F0,#D4B8E0)',mood:'🌸 うれしい',txt:'今日はお散歩で桜の木の下を通った。わんちゃんがくんくんして気持ちよさそうにしてた。こういう何気ない一日が好きだな。',wanko:AI_MSGS['のんびり'][0]},
+  {id:'d2',date:'2025.02.13',title:'雨の日',emoji:'☁️',bg:'linear-gradient(135deg,#DCE8EC,#B0C8D4)',mood:'☁️ のんびり',txt:'雨の日。一日中ゴロゴロしてた。わんちゃんもわたしのそばで丸まってた。',wanko:AI_MSGS['default'][3]},
 ];
 let mediaFiles=[];
 function renderDiaryList(){
   const list=document.getElementById('diaryList');list.innerHTML='';
+  if(!diaries.length){list.innerHTML='<div style="text-align:center;padding:24px 16px;color:var(--soft)"><div style="font-size:32px;margin-bottom:8px">📖</div><div style="font-size:13px;font-weight:600">まだ日記がありません</div><div style="font-size:11px;margin-top:4px">最初の日記を書いてみよう！</div></div>';return;}
   diaries.slice(0,2).forEach(e=>{
     const div=document.createElement('div');div.className='dc';div.onclick=()=>openDiary(e.id);
     const mediaHtml=e.mediaSrc?(e.mediaType==='video'?`<video src="${e.mediaSrc}" muted playsinline style="width:100%;height:100%;object-fit:cover"></video>`:`<img src="${e.mediaSrc}" alt="">`):`<div class="dc-media-ph" style="background:${e.bg}">${e.emoji}</div>`;
-    div.innerHTML=`<div class="dc-media">${mediaHtml}<div class="dc-date-tag">${e.date}</div></div><div class="dc-body">${e.title?`<div class="dc-title">${e.title}</div>`:''}<div class="dc-txt">${e.txt}</div><div class="wanko"><span class="wk-lbl">🐾 おすしからのひとこと</span><span class="wk-txt">${e.wanko}</span></div></div>`;
+    div.innerHTML=`<div class="dc-media">${mediaHtml}<div class="dc-date-tag">${e.date}</div></div><div class="dc-body">${e.title?`<div class="dc-title">${e.title}</div>`:''}<div class="dc-txt">${e.txt}</div><div class="wanko"><span class="wk-lbl">🐾 わんちゃんからのひとこと</span><span class="wk-txt">${esc(e.wanko)}</span></div></div>`;
     list.appendChild(div);
   });
   document.getElementById('statDiary').textContent=diaries.length;
@@ -1514,8 +1531,12 @@ function onEditorInput(){tryAI();}
 // POST
 let aiOn=false,selMood='';
 function pickMood(el){document.querySelectorAll('.mc').forEach(c=>c.classList.remove('on'));el.classList.add('on');selMood=el.textContent.trim();tryAI();}
-function tryAI(){const el=document.getElementById('dta'),txt=el?el.textContent:'';if((txt.length>4||mediaFiles.length>0)&&!aiOn){aiOn=true;document.getElementById('aiBub').classList.add('on');}if(aiOn)document.getElementById('aiMsg').textContent=getAIMsg(selMood);}
-function doSubmit(){const el=document.getElementById('dta'),txt=el?el.textContent.trim():'';if(!txt&&!mediaFiles.length){if(el)el.focus();return;}const title=document.getElementById('diaryTitle').value.trim();const now=new Date();const ds=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;const w=getAIMsg(selMood);const newEntry={id:'d'+Date.now(),date:ds,title,emoji:'✏️',bg:'linear-gradient(135deg,#EDE7FF,#D1C4E9)',mood:selMood,txt,wanko:w,mediaSrc:mediaFiles.length?mediaFiles[0].src:null,mediaType:mediaFiles.length?mediaFiles[0].type:null};
+function tryAI(){const el=document.getElementById('dta'),txt=el?el.textContent:'';if(aiOn)document.getElementById('aiMsg').textContent=getAIMsg(selMood);}
+function doSubmit(){
+  const btn = document.querySelector('.sub-btn');
+  if(btn && btn.disabled) return;
+  if(btn) { btn.disabled=true; btn.textContent='保存中…'; }
+  setTimeout(()=>{ if(btn){ btn.disabled=false; btn.textContent='記録する ✨'; }},2000);const el=document.getElementById('dta'),txt=el?el.textContent.trim():'';if(!txt&&!mediaFiles.length){if(el)el.focus();return;}const title=document.getElementById('diaryTitle').value.trim();const now=new Date();const ds=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;const w=getAIMsg(selMood);const newEntry={id:'d'+Date.now(),date:ds,title,emoji:'✏️',bg:'linear-gradient(135deg,#EDE7FF,#D1C4E9)',mood:selMood,txt,wanko:w,mediaSrc:mediaFiles.length?mediaFiles[0].src:null,mediaType:mediaFiles.length?mediaFiles[0].type:null};
 diaries.unshift(newEntry);
 if(window.saveDiaryToFirestore)window.saveDiaryToFirestore(newEntry);document.getElementById('mMsg').textContent=w;document.getElementById('ovSuccess').classList.add('on');}
 function closeSuccess(){document.getElementById('ovSuccess').classList.remove('on');const d=document.getElementById('dta');if(d)d.innerHTML='';const t=document.getElementById('diaryTitle');if(t)t.value='';mediaFiles=[];refreshMediaStrip();document.getElementById('aiBub').classList.remove('on');document.querySelectorAll('.mc').forEach(c=>c.classList.remove('on'));aiOn=false;selMood='';renderDiaryList();showScreen('home');}
@@ -1577,7 +1598,29 @@ function closeBgSheet(){document.getElementById('ovBg').classList.remove('on');}
 // MEMORY / MISC
 function openMemorySheet(){document.getElementById('ovMemory').classList.add('on');}
 function pickEmoji(el){document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');}
-function createMemory(){const n=document.getElementById('memoryName').value.trim();if(!n){document.getElementById('memoryName').focus();return;}closePicker('ovMemory');document.getElementById('memoryName').value='';showScreen('highlights');}
+function createMemory(){
+  const n=document.getElementById('memoryName').value.trim();
+  if(!n){document.getElementById('memoryName').focus();return;}
+  const emoji=document.querySelector('.emoji-opt.sel')?.textContent||'🐾';
+  // Add to hlRow (home)
+  const row=document.getElementById('hlRow');
+  if(row){
+    const item=document.createElement('div');item.className='hl-circle-item';
+    item.onclick=()=>showScreen('highlights');
+    item.innerHTML='<div class="hl-ring"><div class="hl-inner">'+emoji+'</div></div><div class="hl-lbl">'+n+'</div>';
+    row.insertBefore(item,row.lastElementChild);
+  }
+  // Add to hlGroupList (highlights screen)
+  const gl=document.getElementById('hlGroupList');
+  if(gl){
+    const g=document.createElement('div');g.className='hl-group';
+    g.innerHTML='<div class="hl-group-head"><div class="hl-group-emoji">'+emoji+'</div><div class="hl-group-info"><div class="hl-group-name">'+n+'</div><div class="hl-group-count">0枚</div></div></div><div class="hl-photos"><div class="hl-photo-add" onclick="document.getElementById('hlMediaInput').click()"><div class="hl-photo-add-ico">＋</div><div class="hl-photo-add-txt">追加</div></div></div>';
+    gl.appendChild(g);
+  }
+  closePicker('ovMemory');
+  document.getElementById('memoryName').value='';
+  showScreen('highlights');
+}
 function pickMonth(el){document.querySelectorAll('.mp').forEach(p=>p.classList.remove('on'));el.classList.add('on');}
 function closePicker(id){document.getElementById(id).classList.remove('on');}
 document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('on');}));
@@ -1591,7 +1634,26 @@ function showScreen(name){SCREENS.forEach(s=>{const e=document.getElementById(s+
 initDates();
 renderDiaryList();
 window.addEventListener('load',()=>{setTimeout(()=>{if(!window._fbLoggedIn)document.getElementById('splash').classList.add('out');},2200);});
+window.openPremiumSheet = function(){
+  alert('プレミアムプラン\n\n近日公開予定です！\nリリースをお楽しみに🎉');
+};
+window.syncDogName = function(name) {
+  const n = name.trim() || 'わんちゃん';
+  ['hName','pName'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = n;
+  });
+  // Update sp-title too
+  const sp = document.querySelector('.sp-title');
+  if (sp) sp.textContent = n + 'の成長日記';
+  // Update topbar
+  const tb = document.getElementById('tbUserName');
+  if (tb) tb.textContent = n + 'の成長日記';
+};
 window.addEventListener('resize',drawChart);
+document.addEventListener('touchstart',function(){},{passive:true});
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 </script>
 
 <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:1000;background:linear-gradient(160deg,#4C1D95,#7C3AED,#DB2777);flex-direction:column;align-items:center;justify-content:center;gap:0;">
